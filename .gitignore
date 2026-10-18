@@ -2,3 +2,5 @@
 __pycache__/
 .soffice-profile/
 out/
+build/preview/
+.claude/worktrees/
