@@ -35,6 +35,23 @@ def change_point_table():
     )
 
 
+def cat3_growth_table():
+    body = []
+    for direction in DIRECTIONS:
+        names, growth = rw.cat3_growth(direction)
+        for code in ("32", "33", "34"):
+            body.append(
+                [f"{code} {names[code]}", direction]
+                + [f"{value:.1%}" for value in growth[code]]
+            )
+    return page.table(
+        "Year on year growth of each subcategory of mineral fuels, both directions.",
+        ["Subcategory", "Direction"] + [str(year) for year in YEARS[1:]],
+        body,
+        summary="Show the growth of each subcategory for every year",
+    )
+
+
 def summary_table():
     body = []
     for direction in DIRECTIONS:
@@ -163,6 +180,10 @@ def main():
     _, correl_export = rw.correlation("Export")
     _, cat3_correl = rw.cat3_correl("Export")
     _, share_export = rw.cat3_share("Export")
+    _, export_growth = rw.cat3_growth("Export")
+    _, import_growth = rw.cat3_growth("Import")
+    _, main_export_growth = rw.main_growth("Export")
+    _, main_import_growth = rw.main_growth("Import")
 
     out = page.head(
         "Storyboard, Australian trade 2016 to 2025",
@@ -275,18 +296,36 @@ def main():
     )
 
     out += page.panel(
-        "9. The 2022 divergence",
-        "Coal export growth against crude materials, the category that holds iron ore.",
-        page.figure(charts.divergence_chart(), "st9"),
+        "9. The change points inside mineral fuels",
+        "Year on year growth of coal, petroleum and gas, for both directions. The change "
+        "points of the parent category appear again in each subcategory.",
+        page.figure(charts.cat3_change_points(), "st9a") + cat3_growth_table(),
         takeaway=(
-            "<strong>This is two price cycles crossing, not one commodity replacing another.</strong> "
-            "Coal rose 124% in 2022 while the iron ore category fell. Across the whole decade the "
-            "two are only weakly related, so 2022 is a coincidence of timing rather than a rule."
+            "<strong>The three subcategories turn at the same two change points, and gas on the "
+            "import side is the exception.</strong> In 2020 export fell for all three while gas "
+            f"import rose {import_growth['34'][3]:.1%}. In 2022 coal export rose "
+            f"{export_growth['32'][5]:.1%} and petroleum import rose "
+            f"{import_growth['33'][5]:.1%}, and gas import added only "
+            f"{import_growth['34'][5]:.1%}."
         ),
     )
 
     out += page.panel(
-        "10. The one category Australia buys more than it sells",
+        "10. The 2022 divergence",
+        "Coal growth against crude materials, the category that holds iron ore, in both "
+        "directions.",
+        page.figure(charts.divergence_chart(), "st10a"),
+        takeaway=(
+            "<strong>The divergence is an export story, and the import side tells a different "
+            f"one.</strong> Coal export rose {export_growth['32'][5]:.1%} in 2022 while the iron "
+            f"ore category fell {abs(main_export_growth['2'][5]):.1%}. On import both rose, coal "
+            f"{import_growth['32'][5]:.1%} against {main_import_growth['2'][5]:.1%} for the iron "
+            "ore category."
+        ),
+    )
+
+    out += page.panel(
+        "11. The one category Australia buys more than it sells",
         "Subcategory 33, petroleum, on both sides.",
         page.figure(charts.focus_export_import(), "st10"),
         takeaway=(
@@ -297,7 +336,7 @@ def main():
     )
 
     out += page.panel(
-        "11. Why the gap keeps widening",
+        "12. Why the gap keeps widening",
         "Each point is one year, with petroleum export on one axis and petroleum import on the other.",
         page.figure(charts.focus_scatter(), "st11"),
         takeaway=(
@@ -309,7 +348,7 @@ def main():
     )
 
     out += page.panel(
-        "12. Ten years back, five years forward",
+        "13. Ten years back, five years forward",
         "Petroleum import for 2016 to 2025 as recorded, then three paths to 2030: the linear "
         "trend, the CAGR method and a target of 3% a year lower.",
         page.figure(charts.forecast_chart(), "st12"),
@@ -324,7 +363,7 @@ def main():
     )
 
     out += page.panel(
-        "13. What Claude Sonnet 5 saw, and what it missed",
+        "14. What Claude Sonnet 5 saw, and what it missed",
         "Claude Sonnet 5 received the ten annual import values and nothing "
         "else. It saw no part of "
         "this analysis, no export data, no change point work and no target. The question was the "

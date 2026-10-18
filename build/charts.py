@@ -523,6 +523,16 @@ def focus_vs_subcategories():
                 row=1,
                 col=column,
             )
+            figure.add_annotation(
+                x=YEARS[-1],
+                y=values[code][-1],
+                text=f"{values[code][-1]:,.0f}",
+                showarrow=False,
+                xshift=22,
+                font={"size": 11, "color": theme.SUBCATEGORY_COLOUR[code]},
+                row=1,
+                col=column,
+            )
     apply(
         figure,
         "Petroleum against coal and gas, index 2016 = 100",
@@ -535,7 +545,7 @@ def focus_vs_subcategories():
         figure.update_yaxes(
             **theme.axis("Index (2016 = 100)" if column == 1 else ""), row=1, col=column
         )
-    figure.update_annotations(font={"size": 13, "color": theme.LIGHT["secondary"]})
+    figure.update_annotations(font={"size": 13, "color": theme.LIGHT["secondary"]}, selector={"yref": "paper"})
     return figure
 
 
@@ -739,6 +749,19 @@ def change_point_chart():
             row=1,
             col=column,
         )
+        for year, fall in zip(years, falls):
+            if fall >= 0:
+                figure.add_annotation(
+                    x=year,
+                    y=0,
+                    text="no fall",
+                    showarrow=False,
+                    yshift=-14,
+                    textangle=-90,
+                    font={"size": 10, "color": theme.LIGHT["secondary"]},
+                    row=1,
+                    col=column,
+                )
     apply(
         figure,
         "Change point for each year, largest rise and largest fall by main category",
@@ -751,52 +774,85 @@ def change_point_chart():
         figure.update_yaxes(
             **theme.axis("$ Millions change" if column == 1 else ""), row=1, col=column
         )
-    figure.update_annotations(font={"size": 13, "color": theme.LIGHT["secondary"]})
+    figure.update_annotations(font={"size": 13, "color": theme.LIGHT["secondary"]}, selector={"yref": "paper"})
     figure.update_layout(barmode="relative")
     return figure
 
 
 def divergence_chart():
-    _, growth_e = rw.main_growth("Export")
-    _, coal = rw.vs_growth("Export")
-    figure = go.Figure()
-    figure.add_trace(
-        go.Bar(
-            x=YEARS[1:],
-            y=coal["32"],
-            name="32 Coal export growth",
-            marker={"color": theme.COAL},
-            hovertemplate="Coal %{y:.0%}<extra></extra>",
-        )
+    figure = make_subplots(
+        rows=1,
+        cols=2,
+        horizontal_spacing=0.1,
+        subplot_titles=("Export", "Import"),
     )
-    figure.add_trace(
-        go.Bar(
-            x=YEARS[1:],
-            y=growth_e["2"],
-            name="Crude materials export growth, holds iron ore",
-            marker={"color": theme.CONTEXT},
-            hovertemplate="Category 2 %{y:.0%}<extra></extra>",
+    for column, direction in enumerate(DIRECTIONS, start=1):
+        _, main_growth = rw.main_growth(direction)
+        _, sub_growth = rw.vs_growth(direction)
+        figure.add_trace(
+            go.Bar(
+                x=YEARS[1:],
+                y=sub_growth["32"],
+                name="32 Coal growth",
+                legendgroup="coal",
+                showlegend=column == 1,
+                marker={"color": theme.COAL},
+                hovertemplate="Coal %{y:.0%}<extra></extra>",
+            ),
+            row=1,
+            col=column,
         )
-    )
+        figure.add_trace(
+            go.Bar(
+                x=YEARS[1:],
+                y=main_growth["2"],
+                name="Crude materials growth, holds iron ore",
+                legendgroup="crude",
+                showlegend=column == 1,
+                marker={"color": theme.CONTEXT},
+                hovertemplate="Crude materials %{y:.0%}<extra></extra>",
+            ),
+            row=1,
+            col=column,
+        )
     apply(
         figure,
-        "The 2022 divergence, coal against the iron ore category",
+        "The 2022 divergence, coal against the iron ore category, both directions",
         "Year",
         "Year on year growth",
-        height=450,
+        height=470,
     )
-    figure.update_yaxes(tickformat=".0%")
-    figure.update_layout(
-        barmode="group",
-        annotations=[
-            theme.annotation(
-                "2022: coal rises 124%<br>while crude materials falls",
-                2022,
-                max(coal["32"]),
-                ax=20,
-                ay=-40,
-            )
-        ],
+    for column in (1, 2):
+        figure.update_xaxes(**theme.axis("Year"), row=1, col=column)
+        figure.update_yaxes(
+            **theme.axis("Year on year growth" if column == 1 else ""),
+            tickformat=".0%",
+            row=1,
+            col=column,
+        )
+    figure.update_annotations(font={"size": 13, "color": theme.LIGHT["secondary"]})
+    figure.update_layout(barmode="group")
+    figure.add_annotation(
+        theme.annotation(
+            "2022: coal rises 124%<br>while crude materials falls 5%",
+            2022,
+            1.24,
+            ax=10,
+            ay=-30,
+        ),
+        row=1,
+        col=1,
+    )
+    figure.add_annotation(
+        theme.annotation(
+            "2022: both rise on the import side,<br>coal 87.5% against 9.6%",
+            2022,
+            0.88,
+            ax=10,
+            ay=-30,
+        ),
+        row=1,
+        col=2,
     )
     return figure
 
@@ -867,4 +923,190 @@ def backtest_chart():
         "$ Millions",
         height=480,
     )
+    return figure
+
+
+def focus_growth():
+    rows = rw.focus()
+    years = YEARS[1:]
+    figure = go.Figure()
+    for direction, key in (("Export", "export_growth"), ("Import", "import_growth")):
+        values = [r[key] for r in rows[1:]]
+        figure.add_trace(
+            go.Bar(
+                x=years,
+                y=values,
+                name=f"{direction} growth",
+                marker={"color": theme.DIRECTION_COLOUR[direction]},
+                hovertemplate=f"{direction} %{{y:.1%}}<extra></extra>",
+            )
+        )
+    apply(
+        figure,
+        "Petroleum growth rate, export against import",
+        "Year",
+        "Year on year growth",
+        height=440,
+    )
+    figure.update_yaxes(tickformat=".0%")
+    figure.update_layout(barmode="group")
+    return figure
+
+
+def focus_moving_average():
+    rows = rw.focus()
+    figure = go.Figure()
+    for direction, value_key, average_key in (
+        ("Export", "export", "export_ma"),
+        ("Import", "import", "import_ma"),
+    ):
+        figure.add_trace(
+            go.Scatter(
+                x=YEARS,
+                y=[r[value_key] for r in rows],
+                name=f"{direction}, each year",
+                mode="lines",
+                line={"color": theme.DIRECTION_COLOUR[direction], "width": 1.4, "dash": "dot"},
+                hovertemplate=f"{direction} %{{y:,.0f}}<extra></extra>",
+            )
+        )
+        average_years = [y for y, r in zip(YEARS, rows) if r[average_key] is not None]
+        average_values = [r[average_key] for r in rows if r[average_key] is not None]
+        figure.add_trace(
+            go.Scatter(
+                x=average_years,
+                y=average_values,
+                name=f"{direction}, three year average",
+                mode="lines+markers",
+                line={"color": theme.DIRECTION_COLOUR[direction], "width": 3},
+                marker={"size": 8},
+                hovertemplate=f"{direction} average %{{y:,.0f}}<extra></extra>",
+            )
+        )
+    apply(
+        figure,
+        "Petroleum, the three year moving average smooths the price cycle",
+        "Year",
+        "$ Millions",
+        height=450,
+    )
+    return figure
+
+
+def focus_zscore():
+    rows = rw.focus()
+    years = YEARS[1:]
+    figure = go.Figure()
+    for direction, key in (("Export", "export_z"), ("Import", "import_z")):
+        values = [r[key] for r in rows[1:]]
+        figure.add_trace(
+            go.Bar(
+                x=years,
+                y=values,
+                name=f"{direction} growth z-score",
+                marker={"color": theme.DIRECTION_COLOUR[direction]},
+                text=[f"{v:.2f}" for v in values],
+                textposition="outside",
+                textfont={"size": 10, "color": theme.LIGHT["secondary"]},
+                hovertemplate=f"{direction} z = %{{y:.2f}}<extra></extra>",
+            )
+        )
+    apply(
+        figure,
+        "Petroleum growth outliers, distance from the mean in standard deviations",
+        "Year",
+        "Z-score of year on year growth",
+        height=450,
+    )
+    for level in (2, -2):
+        figure.add_hline(
+            y=level,
+            line={"color": theme.NEGATIVE, "width": 1.4, "dash": "dash"},
+            annotation={
+                "text": f"z = {level:+d}, the outlier threshold",
+                "font": {"size": 11, "color": theme.LIGHT["secondary"]},
+                "xanchor": "left",
+            },
+            annotation_position="top left" if level == 2 else "bottom left",
+        )
+    figure.update_yaxes(range=[-3, 3])
+    figure.update_layout(barmode="group")
+    return figure
+
+
+def focus_pair_correlations():
+    pairs, _ = rw.vs_pairs()
+    labels = {
+        "33 against 32": "Petroleum against coal",
+        "33 against 34": "Petroleum against gas",
+        "32 against 34": "Coal against gas",
+    }
+    order = list(labels)
+    figure = go.Figure()
+    for direction in DIRECTIONS:
+        values = [pairs[key][direction] for key in order]
+        figure.add_trace(
+            go.Bar(
+                x=[labels[key] for key in order],
+                y=values,
+                name=direction,
+                marker={"color": theme.DIRECTION_COLOUR[direction]},
+                text=[f"{v:.2f}" for v in values],
+                textposition="outside",
+                textfont={"size": 11, "color": theme.LIGHT["secondary"]},
+                hovertemplate=f"{direction} r = %{{y:.2f}}<extra></extra>",
+            )
+        )
+    apply(
+        figure,
+        "Growth correlation inside mineral fuels, all six pairs",
+        "Pair of subcategories",
+        "Correlation r of year on year growth",
+        height=440,
+    )
+    figure.update_yaxes(range=[0, 1.1])
+    figure.update_layout(barmode="group")
+    return figure
+
+
+def cat3_change_points():
+    figure = make_subplots(
+        rows=1,
+        cols=2,
+        horizontal_spacing=0.1,
+        subplot_titles=("Export", "Import"),
+    )
+    for column, direction in enumerate(DIRECTIONS, start=1):
+        names, growth = rw.cat3_growth(direction)
+        for code in ("32", "33", "34"):
+            figure.add_trace(
+                go.Bar(
+                    x=YEARS[1:],
+                    y=growth[code],
+                    name=f"{code} {short_name(names[code], 22)}",
+                    legendgroup=code,
+                    showlegend=column == 1,
+                    marker={"color": theme.SUBCATEGORY_COLOUR[code]},
+                    hovertemplate=f"{code} %{{y:.1%}}<extra></extra>",
+                ),
+                row=1,
+                col=column,
+            )
+    apply(
+        figure,
+        "Change points inside mineral fuels, year on year growth of each subcategory",
+        "Year",
+        "Year on year growth",
+        height=470,
+    )
+    for column in (1, 2):
+        figure.update_xaxes(**theme.axis("Year"), row=1, col=column)
+        figure.update_yaxes(
+            **theme.axis("Year on year growth" if column == 1 else ""),
+            tickformat=".0%",
+            row=1,
+            col=column,
+        )
+    figure.update_annotations(font={"size": 13, "color": theme.LIGHT["secondary"]})
+    figure.update_layout(barmode="group")
     return figure

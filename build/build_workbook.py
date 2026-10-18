@@ -1347,6 +1347,17 @@ def build_charts(workbook):
         "Petroleum against coal and gas, import index 2016 = 100", "Index (2016 = 100)",
         "Pet33-vs-Sub", "vs-index-Import", years,
     )
+    column_series_chart(
+        workbook, "Chart-Pet33", "A116",
+        "Subcategory 33 petroleum, three year moving average", "$ Millions",
+        "Pet33-Focus", focus_first, focus_last, [8, 9],
+    )
+    column_series_chart(
+        workbook, "Chart-Pet33", "A139",
+        "Subcategory 33 petroleum, growth outlier z-score",
+        "Z-score of year on year growth",
+        "Pet33-Focus", focus_first, focus_last, [10, 11], kind="bar",
+    )
     forecast_first, _, _, forecast_last = REG["forecast-rows"]
     column_series_chart(
         workbook, "Chart-Pet33", "A93",

@@ -23,8 +23,8 @@ The same three pages are live at:
 WHAT IS IN HERE
 ---------------
 site/index.html        Landing page, key numbers, links to the other two pages
-site/dashboard.html    The dashboard for subcategory 33, five comparisons
-site/storyboard.html   The storyboard, thirteen panels in order
+site/dashboard.html    The dashboard for subcategory 33, nine comparisons
+site/storyboard.html   The storyboard, fourteen panels in order
 build/                 The Python that builds everything
 data/                  The extracted data, the forecast, the AI run, the research notes
 shell.nix              The exact build environment
@@ -48,6 +48,7 @@ root. On a machine with Nix:
     nix-shell --run 'cd build && python3 verify_workbook.py'
     nix-shell --run 'cd build && python3 forecast.py'
     nix-shell --run 'cd build && python3 build_index.py && python3 build_dashboard.py && python3 build_storyboard.py'
+    nix-shell --run 'cd build && python3 render_pages.py'
     nix-shell --run 'cd build && python3 build_report.py'
     nix-shell --run 'cd build && python3 verify_all.py'
 
@@ -79,6 +80,7 @@ SOURCE = [
     "build/build_storyboard.py",
     "build/build_report.py",
     "build/render_previews.py",
+    "build/render_pages.py",
     "build/package.py",
     "build/verify_all.py",
     "data/trade.csv",

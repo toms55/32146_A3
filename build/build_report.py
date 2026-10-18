@@ -117,6 +117,7 @@ class Report:
     def __init__(self):
         self.document = Document()
         self.figure_number = 0
+        self.figure_numbers = {}
         self._setup()
 
     def _setup(self):
@@ -200,6 +201,7 @@ class Report:
 
     def figure(self, name, caption, width_cm=16.8):
         self.figure_number += 1
+        self.figure_numbers[name] = self.figure_number
         paragraph = self.document.add_paragraph()
         paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
         paragraph.paragraph_format.space_before = Pt(6)
@@ -261,6 +263,12 @@ def build_content(report):
     _, cat3_share_export = rw.cat3_share("Export")
     _, cat3_share_import = rw.cat3_share("Import")
     _, cat3_correl_export = rw.cat3_correl("Export")
+    _, cat3_growth_export = rw.cat3_growth("Export")
+    _, cat3_growth_import = rw.cat3_growth("Import")
+    _, main_growth_export = rw.main_growth("Export")
+    _, main_growth_import = rw.main_growth("Import")
+    _, sub_growth_export = rw.vs_growth("Export")
+    _, sub_growth_import = rw.vs_growth("Import")
     _, zscore_export = rw.main_zscore("Export")
     _, main_summary_export = rw.main_summary("Export")
     _, main_summary_import = rw.main_summary("Import")
@@ -303,16 +311,15 @@ def build_content(report):
     report.text(
         f"Australian export grew from ${money(totals_export[2016])}m in 2016 to "
         f"${money(totals_export[2025])}m in 2025. Import grew from ${money(totals_import[2016])}m "
-        f"to ${money(totals_import[2025])}m. The trade balance looks healthy at first sight, but "
-        f"it peaked at ${money(balance_2022)}m in 2022 and then fell "
+        f"to ${money(totals_import[2025])}m. The trade balance peaked at "
+        f"${money(balance_2022)}m in 2022 and then fell "
         f"{abs(balance_2025 / balance_2022 - 1):.0%} to ${money(balance_2025)}m by 2025. The "
         "surplus of the last decade rested on a single price event and it is draining away."
     )
     report.text(
         "Mineral fuels, lubricants and related materials, is the largest mover "
         "in seven of the nine year transitions in the dataset. It sets the direction of the "
-        "decade in both directions of trade. Inside it sits the finding this report is built "
-        "around."
+        "decade in both directions of trade."
     )
     report.text(
         f"Subcategory 33, petroleum, is the only large part of Australian trade where the country "
@@ -321,42 +328,22 @@ def build_content(report):
         f"deficit widened from ${money(abs(first['balance']))}m to ${money(abs(last['balance']))}m. "
         f"Import and export move together at a correlation of {import_export_r:.2f}, because both "
         f"are priced off the same world oil market. Import is {ratio_2025:.2f} times the size of "
-        "export, so every oil price rise widens the deficit. Australia "
-        "cannot export its way out of this gap."
-    )
-    report.text(
-        f"The recommendation is a target. Cutting petroleum import 3% a year from "
-        f"2025 reaches ${money(summary['Target import 2030 ($ Millions)'])}m by 2030. The straight "
-        f"line fit on ten years of data has an R squared of only "
-        f"{summary['Linear trend R squared']:.2f}, so no five year point forecast on this series "
-        "deserves confidence. Section 12 shows Claude Sonnet 5, given the same ten numbers, forecasting "
-        "the opposite direction."
+        "export which causes the deficit to rise quickly when oil prices increase."
     )
 
     report.heading("2. Data collection and preparation")
     report.text(
-        "The data is the Australian International Trade dataset from the Australian Bureau of "
-        "Statistics, supplied as 2026-Spring-Ass3-V20.xlsx. It holds two sheets, one for export "
+        "The data is supplied from canvas as 2026-Spring-Ass3-V20.xlsx. It holds two sheets, one for export "
         "and one for import, covering 2016 to 2025. Each sheet is wide. Row 1 names the category, "
         "row 2 gives the unit, row 3 gives the ABS series identifier, and rows 4 to 13 hold the ten "
         "years. There are 10 main categories, 67 subcategories and one total column, which is 78 "
         "series in each direction."
     )
     report.text(
-        "The source file was never edited. A Python script reads it and writes a new workbook, "
-        "24503993_A3.xlsx. Four checks run on every build. The extract must produce 1,560 rows, "
-        "all ten years must be present in both directions, every unit must read $ Millions, and "
-        "the ten main categories must sum to the published total. That last check passes within "
-        "6 million dollars in the worst year, which is 0.0013% of the total and is consistent with "
-        "ten independently rounded series. There are no blank cells anywhere in the source."
-    )
-    report.text(
-        "Every analytical and statistical result in this report lives in the workbook as a live "
-        "Excel formula. A verification script recomputes growth, index, "
+        "Every analytical and statistical result in this report is derived from the excel sheet "
+        "and can be found there. This includes growth, index, "
         "share, CAGR, the descriptive statistics, the trend fits, the z-scores, the correlation "
-        "matrices, the change points and the forecasts independently, then compares them against "
-        "the recalculated spreadsheet to six decimal places. The build fails if any cell "
-        "disagrees or holds an error value."
+        "matrices, the change points and the forecasts."
     )
 
     report.heading("3. Dataset characteristics and data types")
@@ -365,7 +352,7 @@ def build_content(report):
         "table below lists every field in the source file and every measure derived from it."
     )
     report.table(
-        ["Field or measure", "Data type", "Values", "What the type drives"],
+        ["Field or measure", "Data type", "Values", "How it is used"],
         [
             [
                 "Year",
@@ -377,11 +364,11 @@ def build_content(report):
                 "Main category",
                 "Categorical, nominal",
                 "10 SITC codes of one digit",
-                "One panel per category, because ten series cannot share one palette",
+                "One panel per category",
             ],
             [
                 "Subcategory",
-                "Categorical, nominal, nested in main category",
+                "Categorical, nominal",
                 "67 SITC codes of two digits",
                 "The two level hierarchy that sections 6 and 7 analyse",
             ],
@@ -405,35 +392,29 @@ def build_content(report):
             ],
             [
                 "Index",
-                "Continuous, derived, rebased to 100",
+                "Continuous, derived",
                 "Index points, 2016 = 100",
                 "Growth rate comparison with size removed",
             ],
             [
                 "Z-score",
-                "Continuous, derived, standardised",
+                "Continuous, derived",
                 "Standard deviations",
                 "An outlier threshold at 2, the same for every category",
             ],
             [
                 "Correlation",
-                "Continuous, derived, bounded",
+                "Continuous, derived",
                 "r, from minus 1 to 1",
                 "A diverging colour scale centred on zero",
             ],
         ],
         widths=[3.0, 4.2, 3.6, 6.0],
     )
-    report.text(
-        "One limit in that table deserves emphasis. The dataset records dollars, so it cannot separate a "
-        "price change from a volume change. Where this report states a cause it says whether the "
-        "evidence supports a price reading or a volume reading, and it does not claim a volume "
-        "effect that the data cannot show."
-    )
 
     report.heading("4. The patterns built in Excel, and how they reach the dashboard")
     report.text(
-        f"The workbook holds {sheet_count} sheets and 19 native Excel time series charts. Each "
+        f"The workbook holds {sheet_count} sheets and 21 native Excel time series charts. Each "
         "chart carries a "
         "title and a label on both axes. The analysis sheets are these."
     )
@@ -448,7 +429,7 @@ def build_content(report):
             ["Cat3-SubAnalytics", "Mineral fuels against its subcategories", "Analytical"],
             ["Pet33-Focus", "The focus subcategory, with an insight for each year", "Analytical"],
             ["Pet33-vs-Sub", "Petroleum against coal and gas, with correlations", "Statistical"],
-            ["Pet33-Forecast", "Linear trend and CAGR forecasts, and the target path", "Statistical"],
+            ["Pet33-Forecast", "Linear trend and CAGR forecasts for petroleum import, and the target path", "Statistical"],
             ["AI-Comparison", "My forecast against the Claude Sonnet 5 forecast", "Analytical"],
         ],
         widths=[4.0, 9.4, 2.8],
@@ -460,13 +441,6 @@ def build_content(report):
         "spreadsheet and rebuilds will see the charts move. The spreadsheet is the single source "
         "of every number in this report and on both web pages."
     )
-    report.text(
-        "One implementation note is worth recording. The openpyxl library writes modern Excel "
-        "function names without the _xlfn prefix that the file format requires, so LibreOffice "
-        "returns #NAME? for them. Every formula in the workbook therefore uses a legacy function "
-        "name, such as FORECAST and STDEVP rather than FORECAST.LINEAR and STDEV.P. Both spellings "
-        "are valid in current Excel, and the legacy names work in both applications."
-    )
 
     report.heading("5. All ten main categories, raw, analytical and statistical trends")
     report.figure(
@@ -475,9 +449,7 @@ def build_content(report):
         "per category so that small categories stay readable next to large ones.",
     )
     report.text(
-        "Ten categories cannot share one set of colours without becoming unreadable, so the raw "
-        "view uses one panel per category and keeps colour for the one distinction that matters "
-        "everywhere in this report, which is import against export. The export side is "
+        "The ten graphs are one per category, which is import against export. The export side is "
         f"concentrated. Crude materials contributed ${money(main_summary_export['2'][1])}m of export "
         f"growth and mineral fuels contributed ${money(main_summary_export['3'][1])}m. The import side "
         f"is broader, and machinery and transport alone contributed ${money(main_summary_import['7'][1])}m."
@@ -538,15 +510,17 @@ def build_content(report):
     report.figure(
         "f06_change",
         "The main category that rose most and the one that fell most in each year, both directions, "
-        "in $ Millions of change.",
+        "in $ Millions of change. No import category fell in 2017 or in 2022, so those two fall "
+        "bars sit at zero and carry a no fall note.",
     )
     report.text(
         "Requirement 3 asks for the change point in every year, so the workbook records all nine "
         "transitions. The table below gives the largest export "
-        "mover and the cause. Causes drawn from outside the data cite a sourced research note."
+        "mover, the largest import mover and the cause. Causes drawn from outside the data cite "
+        "a sourced research note."
     )
     report.table(
-        ["Year", "Largest export mover", "Change", "Cause"],
+        ["Year", "Largest export mover", "Change", "Largest import mover", "Change", "Cause"],
         [
             [
                 str(row["year"]),
@@ -558,11 +532,19 @@ def build_content(report):
                 money(row["export_rise"])
                 if abs(row["export_rise"]) >= abs(row["export_fall"])
                 else money(row["export_fall"]),
+                short(
+                    row["import_rise_name"]
+                    if abs(row["import_rise"]) >= abs(row["import_fall"])
+                    else row["import_fall_name"]
+                ),
+                money(row["import_rise"])
+                if abs(row["import_rise"]) >= abs(row["import_fall"])
+                else money(row["import_fall"]),
                 row["cause"].split(".")[0] + ".",
             ]
             for row in change
         ],
-        widths=[1.4, 4.2, 2.2, 8.4],
+        widths=[1.2, 3.3, 1.6, 3.3, 1.6, 5.2],
     )
     report.text(
         "Two findings in that table correct a reading that the headline numbers invite. First, "
@@ -575,7 +557,16 @@ def build_content(report):
     )
     report.figure(
         "f10_diverge",
-        "The 2022 divergence. Coal export growth against crude materials, which holds iron ore.",
+        "The 2022 divergence. Coal growth against crude materials, which holds iron ore. Export "
+        "on the left panel and import on the right panel.",
+    )
+    report.text(
+        "The two panels do not tell the same story. On the export side the cycles crossed, "
+        f"because coal rose {sub_growth_export['32'][5]:.0%} in 2022 while crude materials fell "
+        f"{abs(main_growth_export['2'][5]):.0%}. On the import side there is no divergence. Coal "
+        f"import rose {sub_growth_import['32'][5]:.1%} in 2022 and crude materials import rose "
+        f"{main_growth_import['2'][5]:.1%}, so both sides move the same way and coal simply rises "
+        "about nine times faster."
     )
 
     report.heading("7. Main category against subcategory, inside mineral fuels")
@@ -608,7 +599,7 @@ def build_content(report):
         f"{cat3_share_export['32'][-1]:.1%}."
     )
     report.text(
-        "One change point can be read from inside the data alone. In 2025 mineral fuels export fell "
+        "In 2025 mineral fuels export fell "
         "18% while petroleum import fell only 6%. If a single demand collapse were driving both "
         "sides they would fall together. They do not, so the export fall is a price effect on what "
         "Australia sells."
@@ -617,22 +608,38 @@ def build_content(report):
     report.heading("8. The dashboard")
     report.text(
         f"The dashboard is at {PAGES_URL}dashboard.html and covers subcategory 33 in both "
-        "directions on one screen. It carries a six tile summary row, five named comparisons, an "
+        "directions on one screen. It carries a six tile summary row, nine named comparisons, an "
         "insight for each of the ten years, a closing 2030 outlook panel that carries the Claude "
         "Sonnet 5 forecast, and a year range control that re-scales every time "
         "chart at once. Each chart has a collapsible table of the numbers beneath it."
     )
     report.bullets(
         [
-            "Comparison 1, export against import on one scale, with the 2020 and 2022 change points "
-            "annotated on the plot itself.",
-            "Comparison 2, the trade balance as columns, every one of them negative.",
-            "Comparison 3, petroleum against its own main category, which exposes the asymmetry "
-            "between the two directions.",
-            "Comparison 4, petroleum against coal and gas on a common index.",
-            "Comparison 5, import against export as a scatter with the fitted line, which is where "
-            "the central finding of this report becomes visible.",
+            "Comparison 1, export against import. Both directions in dollars on one scale, with "
+            "the deficit as the gap between the lines.",
+            "Comparison 2, growth rate, export against import. Year on year growth in per cent, "
+            "so the small export series and the large import series compare fairly.",
+            "Comparison 3, the trade balance. Export minus import for each year, negative in all "
+            "ten years.",
+            "Comparison 4, import against export, year by year. A scatter with a fitted line, at "
+            f"r = {import_export_r:.2f}.",
+            "Comparison 5, the three year moving average. The smoothed trend of both directions, "
+            "which graphs the live Excel moving average formula.",
+            "Comparison 6, growth outliers, z-score. Growth distance from the mean in standard "
+            "deviations, with the plus 2 and minus 2 thresholds marked.",
+            "Comparison 7, petroleum against its main category. Petroleum as a share of mineral "
+            "fuels, import and export.",
+            "Comparison 8, petroleum against coal and gas. The three subcategories indexed to "
+            "2016 = 100, each line labelled with its 2025 value.",
+            "Comparison 9, growth correlation with coal and gas. All six pair correlations, which "
+            "is three pairs by two directions.",
         ]
+    )
+    report.figure(
+        "f16_dashboard",
+        "The dashboard as the reader sees it. Subcategory 33 in both directions on one screen, "
+        "with the summary tiles, the nine comparisons, the year insights and the 2030 outlook. "
+        "The page is cut into three columns so that it fits one figure.",
     )
     report.figure(
         "f11_focus",
@@ -659,12 +666,115 @@ def build_content(report):
     report.heading("9. The storyboard")
     report.text(
         f"The storyboard is at {PAGES_URL}storyboard.html. Where the dashboard answers questions in "
-        "any order, the storyboard makes one argument in a fixed order across thirteen panels. It "
+        "any order, the storyboard makes one argument in a fixed order across fourteen panels. It "
         "starts with total Australian trade, moves through the ten main categories in their raw, "
         "indexed and statistical forms, works through the change point of each year, descends into "
         "mineral fuels, then into subcategory 33, and closes with the forecast and the Claude "
         "Sonnet 5 comparison. Every panel carries both trade directions and ends with a stated takeaway, so "
         "a reader cannot reach the end without having been told what each chart is for."
+    )
+    report.figure(
+        "f17_storyboard",
+        "The storyboard as the reader sees it. Fourteen panels in a fixed order, each with its "
+        "charts, its tables and its stated takeaway. The page is cut into three columns so that "
+        "it fits one figure.",
+    )
+    report.text("The fourteen panels and the takeaway of each are these.")
+    report.table(
+        ["Panel", "Takeaway"],
+        [
+            [
+                "1. The surplus that peaked, then faded",
+                "The record surplus did not last. The balance grew to "
+                f"${money(balance_2022)}m in 2022, then fell "
+                f"{abs(balance_2025 / balance_2022 - 1):.0%} to ${money(balance_2025)}m by 2025.",
+            ],
+            [
+                "2. Who drove the decade, in raw dollars",
+                "Export is concentrated and import is broad. Crude materials and mineral fuels "
+                "carry the export story. Machinery and transport is the largest import block in "
+                "every year.",
+            ],
+            [
+                "3. The same ten categories, indexed to 2016",
+                "Indexing reorders the winners. Animal and vegetable oils is the smallest in "
+                "dollars but grew fastest. Beverages and tobacco export ends the decade near "
+                "where it started.",
+            ],
+            [
+                "4. How the shares shifted",
+                "The export mix moved and the import mix did not. Crude materials rose to "
+                f"{rw.main_share('Export')[1]['2'][-1]:.1%} of export while machinery and "
+                "transport held about 41% of import.",
+            ],
+            [
+                "5. The statistical view, size against volatility",
+                "2020 and 2022 own the outliers. 2020 is the outlier year for manufactured "
+                "goods, machinery and transport, and miscellaneous manufactures. 2022 belongs to "
+                "mineral fuels and 2025 to other commodities.",
+            ],
+            [
+                "6. The change point in every year",
+                "One category sets the direction of the decade. Mineral fuels is the largest "
+                "mover in seven of the nine year transitions.",
+            ],
+            [
+                "7. How the main categories move against each other",
+                "The two largest export categories are unrelated. Mineral fuels against crude "
+                f"materials is r = {correl_export['3']['2']:.2f}. Mineral fuels moves instead "
+                f"with manufactured goods at r = {correl_export['3']['6']:.2f}, on the same world "
+                "price cycle.",
+            ],
+            [
+                "8. Inside mineral fuels",
+                "The export side and the import side are different categories in practice. "
+                f"Petroleum is {cat3_share_export['33'][-1]:.0%} of mineral fuels export and "
+                f"{cat3_share_import['33'][-1]:.0%} of mineral fuels import.",
+            ],
+            [
+                "9. The change points inside mineral fuels",
+                "The three subcategories turn at the same two change points, and gas on the "
+                "import side is the exception. In 2020 export fell for all three while gas "
+                f"import rose {cat3_growth_import['34'][3]:.1%}. In 2022 coal export rose "
+                f"{cat3_growth_export['32'][5]:.1%} and petroleum import rose "
+                f"{cat3_growth_import['33'][5]:.1%}, and gas import added only "
+                f"{cat3_growth_import['34'][5]:.1%}.",
+            ],
+            [
+                "10. The 2022 divergence",
+                "The divergence is an export story, and the import side tells a different one. "
+                f"Coal export rose {sub_growth_export['32'][5]:.1%} in 2022 while the iron ore "
+                f"category fell {abs(main_growth_export['2'][5]):.1%}. On import both rose, coal "
+                f"{sub_growth_import['32'][5]:.1%} against {main_growth_import['2'][5]:.1%} for "
+                "the iron ore category.",
+            ],
+            [
+                "11. The one category Australia buys more than it sells",
+                "Petroleum is the mirror image of the rest of Australian trade. The deficit "
+                f"widened from ${money(abs(first['balance']))}m in 2016 to "
+                f"${money(abs(last['balance']))}m in 2025.",
+            ],
+            [
+                "12. Why the gap keeps widening",
+                f"The two sides move together at r = {import_export_r:.2f} on one world price. "
+                f"Import is {ratio_2025:.2f} times export, so a price rise widens the deficit "
+                "instead of closing it.",
+            ],
+            [
+                "13. Ten years back, five years forward",
+                "Australia lost ground across the ten years. The target path cuts import 3% a "
+                f"year to ${money(summary['Target import 2030 ($ Millions)'])}m by 2030, because "
+                "the straight line fit explains only "
+                f"{summary['Linear trend R squared']:.0%} of the variance.",
+            ],
+            [
+                "14. What Claude Sonnet 5 saw, and what it missed",
+                f"The backtest says the Claude Sonnet 5 method was the worst of the three, at "
+                f"{mape['recent']:.1%} mean error, and that all three failed. A five year point "
+                "forecast of a world priced commodity is a guess whoever makes it.",
+            ],
+        ],
+        widths=[4.6, 11.6],
     )
     report.figure(
         "f01_total",
@@ -719,6 +829,17 @@ def build_content(report):
         "remaining gap points to volume or refining throughput, which this dataset cannot separate."
     )
 
+    report.heading("10.1 Breakthrough analysis")
+    report.text(
+        "Three findings break the reading that the headline numbers invite. The first is the 2022 "
+        f"price shock. It lifted the trade surplus to ${money(balance_2022)}m and then drained it, "
+        "so the decade surplus rests on one event rather than on a trend. The second is the "
+        f"correlation of r = {import_export_r:.2f} between petroleum import and export in section "
+        "11. It shows that selling more petroleum widens the deficit instead of closing it. The "
+        "third is the gold decomposition above, where one product inside other commodities "
+        "explains more than the whole category movement."
+    )
+
     report.heading("11. Ten years of gain and loss, the target, and the forecast")
     report.text(
         f"The product chosen for this section is petroleum import, subcategory 33. It stood at "
@@ -727,7 +848,8 @@ def build_content(report):
         f"${money(last['export'])}m. Across the ten years Australia lost ground on it. Import rose "
         f"${money(summary['Change 2016 to 2025 ($ Millions)'])}m, which is a rise of "
         f"{summary['Change 2016 to 2025 (percent)']:.0%}, at a compound rate of "
-        f"{summary['Import CAGR 2016 to 2025']:.1%} a year. The petroleum trade deficit widened by "
+        f"{summary['Import CAGR 2016 to 2025']:.1%} a year, against an export CAGR of "
+        f"{(last['export'] / first['export']) ** (1 / 9) - 1:.1%}. The petroleum trade deficit widened by "
         f"${money(abs(summary['Balance 2025 ($ Millions)']) - abs(summary['Balance 2016 ($ Millions)']))}m "
         "over the same period. The loss is a larger bill every year for a "
         "product Australia increasingly does not refine for itself."
@@ -934,13 +1056,20 @@ def build_content(report):
         "having no forecast at all."
     )
 
+    number = report.figure_numbers
+
     report.heading("13. Visualisation techniques, and the problems handled")
     report.text(
-        "Each technique was chosen for one job. Time series lines carry the trends, columns carry a signed "
-        "quantity such as the balance, small multiples where ten categories had to be compared at "
-        "once, a dumbbell for a before and after comparison, a heatmap for the correlation matrix, "
-        "and a scatter with a fitted line for the relationship between the two trade directions. "
-        "Five problems came up and each needed a decision."
+        "Each technique was chosen for one job, and each figure uses one of them. Time series "
+        f"lines carry the trends in figures {number['f11_focus']}, {number['f01_total']} and "
+        f"{number['f15_forecast']}. Columns carry a signed quantity such as the balance in figure "
+        f"{number['f12_balance']}. Small multiples compare ten categories at once in figures "
+        f"{number['f02_raw']} and {number['f03_index']}, and they also split the statistical view "
+        f"in figure {number['f05_stats']}. A dumbbell carries the before and after comparison in "
+        f"figure {number['f04_share']}. A heatmap carries the correlation matrix in figure "
+        f"{number['f07_correl']}. A scatter with a fitted line carries the relationship between "
+        f"the two trade directions in figure {number['f14_scatter']}. Five problems came up and "
+        "each needed a decision."
     )
     report.numbers(
         [
@@ -994,6 +1123,15 @@ def build_content(report):
     )
     report.numbers(
         [
+            "Treat the 2030 figure as a range and not as a point, because the AI comparison "
+            "disagrees with my own. Claude Sonnet 5 forecast a fall to "
+            f"${money(ai[-1]['ai'])}m by 2030 and my linear trend forecast a rise to "
+            f"${money(ai[-1]['linear'])}m. The two differ by "
+            f"${money(abs(ai[-1]['difference']))}m, which is more than the entire 2016 import "
+            f"value of ${money(first['import'])}m. The backtest in section 12.3 then gave the "
+            "Claude Sonnet 5 recent window method the worst mean error of the three tested, at "
+            f"{mape['recent']:.1%}. Two defensible methods that disagree by this much argue for a "
+            "tracked target rather than trust in either line.",
             f"Set the petroleum import bill as a tracked target. The path in this "
             f"report cuts it 3% a year to ${money(summary['Target import 2030 ($ Millions)'])}m by "
             "2030. A forecast on this series is too unreliable to steer by. A target is a "
@@ -1026,7 +1164,12 @@ def build_content(report):
         f"{abs(balance_2025 / balance_2022 - 1):.0%} since. Subcategory 33 runs the other way, and "
         "section 11 shows why selling more petroleum cannot close it. One decision follows, which "
         "is to track the import bill against a target. The backtest in section 12.3 shows no method "
-        "here forecasts this series. Every number above lives in the submitted workbook as a live "
+        "here forecasts this series. Subcategory 33 also sits apart from its parent and from its "
+        f"neighbours. It is {cat3_share_export['33'][-1]:.0%} of mineral fuels export and "
+        f"{cat3_share_import['33'][-1]:.0%} of mineral fuels import. On the export side it tracks "
+        f"coal at r = {pairs['33 against 32']['Export']:.2f} and gas at "
+        f"r = {pairs['33 against 34']['Export']:.2f}. "
+        "Every number above lives in the submitted workbook as a live "
         "formula, and the report, the dashboard and the storyboard all read that one file."
     )
 
