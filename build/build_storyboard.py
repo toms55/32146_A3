@@ -7,7 +7,7 @@ OUT = ROOT / "docs" / "storyboard.html"
 
 INTRO = (
     "A story told in order, from the whole of Australian trade down to one subcategory. "
-    "Every panel carries both trade directions. Read it top to bottom."
+    "Every panel carries both trade directions."
 )
 
 
@@ -94,8 +94,8 @@ def ai_table():
         for r in rows
     ]
     return page.table(
-        "My two forecasts against the Claude Sonnet 5 forecast. Values in $ Millions.",
-        ["Year", "My linear trend", "My CAGR method", "Claude Sonnet 5", "Sonnet less my linear", "Sonnet less my linear, percent"],
+        "The two workbook forecasts against the Claude Sonnet 5 forecast. Values in $ Millions.",
+        ["Year", "Linear trend", "CAGR method", "Claude Sonnet 5", "Sonnet less linear", "Sonnet less linear, percent"],
         body,
         summary="Show the forecast comparison numbers",
     )
@@ -234,8 +234,8 @@ def main():
 
     out += page.panel(
         "6. The change point in every year",
-        "For each year from 2017 to 2025, the main category that rose most and the one that fell "
-        "most, in both directions.",
+        "The biggest riser and the biggest faller among the ten main categories, for each year "
+        "from 2017 to 2025, shown for export and for import.",
         page.figure(charts.change_point_chart(), "st6") + change_point_table(),
         takeaway=(
             "<strong>One category sets the direction of the decade.</strong> Main category 3 is the "
@@ -250,10 +250,10 @@ def main():
         page.figure(charts.correlation_heatmap("Export"), "st7a")
         + page.figure(charts.correlation_heatmap("Import"), "st7b"),
         takeaway=(
-            "<strong>The two largest export categories are unrelated.</strong> Category 3 against "
-            f"category 2 is r = {correl_export['3']['2']:.2f}, which is effectively zero. Category 3 "
-            f"moves instead with category 6 at r = {correl_export['3']['6']:.2f}, because both follow "
-            "the same world price cycle."
+            "<strong>The two largest export categories are unrelated.</strong> Mineral fuels "
+            f"against crude materials is r = {correl_export['3']['2']:.2f}, which is effectively "
+            "zero. Mineral fuels moves instead with manufactured goods at r = "
+            f"{correl_export['3']['6']:.2f}, because both follow the same world price cycle."
         ),
     )
 
@@ -306,7 +306,8 @@ def main():
 
     out += page.panel(
         "12. Ten years back, five years forward",
-        "Petroleum import, the ten actual years and the five forecast years, with the target path.",
+        "Petroleum import for 2016 to 2025 as recorded, then three paths to 2030: the linear "
+        "trend, the CAGR method and a target of 3% a year lower.",
         page.figure(charts.forecast_chart(), "st12"),
         takeaway=(
             f"<strong>Across ten years Australia lost ground.</strong> Petroleum import rose "
@@ -320,7 +321,7 @@ def main():
 
     out += page.panel(
         "13. What Claude Sonnet 5 saw, and what it missed",
-        "Claude Sonnet 5, model id claude-sonnet-5, received the ten annual import values and nothing "
+        "Claude Sonnet 5 received the ten annual import values and nothing "
         "else. It saw no part of "
         "this analysis, no export data, no change point work and no target. The question was the "
         "same one this storyboard answers in panel 12. The answers point in opposite directions, "
@@ -334,8 +335,13 @@ def main():
                 "continued it, which gives an average fall of about $4,113m a year.",
                 "This analysis fitted all ten years. Over ten years the series rises, so the same "
                 "data read over a longer window points up instead of down.",
-                "Neither choice is wrong on its face. The window is the whole argument, and the "
-                "model stated its window plainly, which is what made the disagreement checkable.",
+                "The four year window answers faster and tracks the most recent market state, "
+                "so it reacts to the post 2022 fall. It also treats one price spike as a trend "
+                "and runs the series to an implausible level if it is extended far enough.",
+                "The ten year window uses every observation and reports a fit statistic, so the "
+                "weak R squared of "
+                f"{summary['Linear trend R squared']:.2f} warns the reader. It also smooths the "
+                "2022 shock away and keeps rising after the market turned down.",
             ],
         )
         + page.figure(charts.backtest_chart(), "st13")
@@ -345,7 +351,9 @@ def main():
             [
                 "The 2020 dip and the 2022 peak are price events, not demand events. Petroleum "
                 f"import and export move together at r = {import_export_r:.2f}, which only the two "
-                "way data shows. The model received the import side alone.",
+                "way data shows. The prompt gave the import side alone, because the forecast "
+                "target was import. That choice cost the model the one series that separates a "
+                "price move from a demand move.",
                 "Two Australian refineries closed in 2020 and 2021. That cut domestic refining "
                 "capacity, raised the refined product share of imports and put a floor under the "
                 "volume. No part of that is visible in ten annual totals.",

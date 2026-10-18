@@ -6,8 +6,7 @@ OUT = ROOT / "docs" / "index.html"
 
 INTRO = (
     "Australian International Trade from 2016 to 2025, built for readers in public policy and "
-    "government. Ten main categories, 67 subcategories, import and export, in millions of "
-    "Australian dollars."
+    "government."
 )
 
 
@@ -54,13 +53,8 @@ something up in any order.</span>
 <a class="cta" href="storyboard.html">
 <span class="go">Click here to view the storyboard &rarr;</span>
 <span class="why">It runs thirteen panels in a fixed order, from total Australian trade down to
-subcategory 33. Use it to be walked through the argument. Read it top to bottom.</span>
+subcategory 33. Use it to be walked through the argument.</span>
 </a>
-<p style="margin:14px 0 0;color:var(--secondary);max-width:80ch">
-Both pages read the same Excel workbook, <code>24503993_A3.xlsx</code>. Every analytical and
-statistical pattern lives in that workbook as a live formula. These pages display those numbers
-and do not recompute them.
-</p>
 """,
     )
     out += page.panel(

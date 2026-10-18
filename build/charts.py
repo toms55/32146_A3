@@ -12,6 +12,20 @@ def money(value):
     return f"{value:,.0f}"
 
 
+HEATMAP_LABELS = {
+    "0": "Food and live animals",
+    "1": "Beverages and tobacco",
+    "2": "Crude materials",
+    "3": "Mineral fuels",
+    "4": "Animal and vegetable oils",
+    "5": "Chemicals",
+    "6": "Manufactured goods",
+    "7": "Machinery and transport",
+    "8": "Miscellaneous manufactures",
+    "9": "Other commodities",
+}
+
+
 def short_name(name, limit=34):
     if name is None:
         return ""
@@ -316,7 +330,7 @@ def correlation_heatmap(direction):
     codes, matrix = rw.correlation(direction)
     names, _ = rw.main_values(direction)
     values = [[matrix[r][c] for c in codes] for r in codes]
-    labels = [f"{c}" for c in codes]
+    labels = [HEATMAP_LABELS.get(str(c), short_name(names[c], 24)) for c in codes]
     figure = go.Figure(
         go.Heatmap(
             z=values,
@@ -337,7 +351,7 @@ def correlation_heatmap(direction):
                 "tickfont": {"size": 11},
                 "outlinewidth": 0,
             },
-            hovertemplate="category %{y} against %{x}<br>r %{z:.2f}<extra></extra>",
+            hovertemplate="%{y} against %{x}<br>r %{z:.2f}<extra></extra>",
         )
     )
     apply(
@@ -345,9 +359,10 @@ def correlation_heatmap(direction):
         f"{direction}: how the main categories move together, growth correlation",
         "Main category",
         "Main category",
-        height=520,
+        height=620,
         legend=False,
     )
+    figure.update_xaxes(tickangle=-40)
     return figure
 
 
