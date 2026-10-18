@@ -100,13 +100,13 @@ def share_table():
         _, share = rw.cat3_share(direction)
         body.append(
             [
-                f"Petroleum share of category 3, {direction.lower()}",
+                f"Petroleum share of mineral fuels, {direction.lower()}",
                 f"{share['33'][0]:.1%}",
                 f"{share['33'][-1]:.1%}",
             ]
         )
     return page.table(
-        "Petroleum as a share of main category 3.",
+        "Petroleum as a share of mineral fuels.",
         ["Measure", "2016", "2025"],
         body,
         summary="Show the share numbers behind this chart",
@@ -168,21 +168,21 @@ def main():
     )
 
     out += page.panel(
-        "Comparison 3. Petroleum against its main category",
-        "Petroleum as a share of main category 3, for import and for export. This shows how "
+        "Comparison 3. Petroleum against mineral fuels, its main category",
+        "Petroleum as a share of mineral fuels, for import and for export. This shows how "
         "much of the energy category the subcategory carries on each side.",
         page.figure(charts.focus_share_of_main(), "cmp3") + share_table(),
         takeaway=(
             f"<strong>The two sides are not alike.</strong> Petroleum is "
-            f"{share_export['33'][-1]:.1%} of category 3 export in 2025 and "
-            f"{share_import['33'][-1]:.1%} of category 3 import, against "
+            f"{share_export['33'][-1]:.1%} of mineral fuels export in 2025 and "
+            f"{share_import['33'][-1]:.1%} of mineral fuels import, against "
             f"{share_import['32'][-1]:.1%} for coal and {share_import['34'][-1]:.1%} for gas."
         ),
     )
 
     out += page.panel(
         "Comparison 4. Petroleum against coal and gas",
-        "The three subcategories of main category 3, indexed so that 2016 equals 100. An index "
+        "The three subcategories of mineral fuels, indexed so that 2016 equals 100. An index "
         "lets subcategories of very different size share one axis.",
         page.figure(charts.focus_vs_subcategories(), "cmp4a") + subcategory_table(),
         takeaway=(

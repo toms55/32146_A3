@@ -192,9 +192,9 @@ def main():
         "category so that every category is visible at its own scale.",
         page.figure(charts.main_small_multiples("value"), "st2") + summary_table(),
         takeaway=(
-            "<strong>Export is concentrated and import is broad.</strong> Categories 2 and 3 carry "
-            "most of the export story. On the import side category 7, machinery and transport "
-            "equipment, is the largest single block in every year."
+            "<strong>Export is concentrated and import is broad.</strong> Crude materials and "
+            "mineral fuels carry most of the export story. On the import side machinery and "
+            "transport equipment is the largest single block in every year."
         ),
     )
 
@@ -204,9 +204,9 @@ def main():
         "is the analytical view of the same data.",
         page.figure(charts.main_small_multiples("index"), "st3"),
         takeaway=(
-            "<strong>Indexing reorders the winners.</strong> Category 4 is tiny in dollars but grew "
-            "fastest of all. Category 1, beverages and tobacco, is the only category whose export "
-            "ends the decade near where it started."
+            "<strong>Indexing reorders the winners.</strong> Animal and vegetable oils is tiny in "
+            "dollars but grew fastest of all. Beverages and tobacco is the only category whose "
+            "export ends the decade near where it started."
         ),
     )
 
@@ -215,20 +215,23 @@ def main():
         "Each category as a share of its own direction total, in 2016 and again in 2025.",
         page.figure(charts.share_slope(), "st4"),
         takeaway=(
-            "<strong>The import mix barely moved and the export mix did.</strong> Category 2 rose to "
-            "34.5% of export. On the import side category 7 held about 41% across the whole decade."
+            "<strong>The import mix barely moved and the export mix did.</strong> Crude materials "
+            "rose to 34.5% of export. On the import side machinery and transport equipment held "
+            "about 41% across the whole decade."
         ),
     )
 
     out += page.panel(
         "5. The statistical view, size against volatility",
-        "The left panel plots average size against the coefficient of variation. The right panel "
-        "shows the single most unusual growth year for each category, measured as a z-score.",
+        "The left panel ranks the main categories by the coefficient of variation, with the "
+        "marker size set by the average value. The right panel shows the single most unusual "
+        "growth year for each category, measured as a z-score.",
         page.figure(charts.main_statistical(), "st5") + stats_table(),
         takeaway=(
-            "<strong>2020 and 2022 own the outliers.</strong> On the export side 2020 is the outlier "
-            "year for the three manufacturing categories 6, 7 and 8, and 2022 is the outlier for "
-            "category 3. Category 9 breaks out in 2025."
+            "<strong>2020 and 2022 own the outliers.</strong> On the export side 2020 is the "
+            "outlier year for manufactured goods, machinery and transport, and miscellaneous "
+            "manufactures. 2022 is the outlier for mineral fuels. Other commodities breaks out "
+            "in 2025."
         ),
     )
 
@@ -238,7 +241,7 @@ def main():
         "from 2017 to 2025, shown for export and for import.",
         page.figure(charts.change_point_chart(), "st6") + change_point_table(),
         takeaway=(
-            "<strong>One category sets the direction of the decade.</strong> Main category 3 is the "
+            "<strong>One category sets the direction of the decade.</strong> Mineral fuels is the "
             "largest mover in seven of the nine year transitions, up or down."
         ),
     )
@@ -258,13 +261,14 @@ def main():
     )
 
     out += page.panel(
-        "8. Inside main category 3",
-        "Main category 3 and its three subcategories, coal, petroleum and gas, in both directions.",
+        "8. Inside mineral fuels",
+        "Mineral fuels, lubricants and related materials, and its three subcategories, coal, "
+        "petroleum and gas, in both directions.",
         page.figure(charts.cat3_subcategories("value"), "st8")
         + page.figure(charts.cat3_subcategories("share"), "st8b"),
         takeaway=(
             "<strong>The export side and the import side are different categories in practice.</strong> "
-            f"On export, petroleum is only {share_export['33'][-1]:.0%} of category 3 in 2025, behind "
+            f"On export, petroleum is only {share_export['33'][-1]:.0%} of mineral fuels in 2025, behind "
             "coal and gas. On import, petroleum is almost the whole category. Each subcategory tracks "
             f"its parent closely, petroleum at r = {cat3_correl['33'][0]:.2f}."
         ),
@@ -272,7 +276,7 @@ def main():
 
     out += page.panel(
         "9. The 2022 divergence",
-        "Coal export growth against main category 2, the category that holds iron ore.",
+        "Coal export growth against crude materials, the category that holds iron ore.",
         page.figure(charts.divergence_chart(), "st9"),
         takeaway=(
             "<strong>This is two price cycles crossing, not one commodity replacing another.</strong> "

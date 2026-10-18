@@ -55,9 +55,9 @@ FIGURES = {
     "f02_raw": (lambda: charts.main_small_multiples("value", 16, 4, 0.085), 1300, 760, 1.7),
     "f03_index": (lambda: charts.main_small_multiples("index", 16, 4, 0.085), 1300, 760, 1.7),
     "f04_share": (lambda: charts.share_slope(20, 0.33), 1450, 700, 1.45),
-    "f05_stats": (lambda: charts.main_statistical(), 1400, 520, 1.5),
+    "f05_stats": (lambda: charts.main_statistical(), 1400, 760, 1.5),
     "f06_change": (lambda: charts.change_point_chart(), 1300, 520, 1.45),
-    "f07_correl": (lambda: charts.correlation_heatmap("Export"), 1050, 540, 1.3),
+    "f07_correl": (lambda: charts.correlation_heatmap("Export"), 1100, 760, 1.3),
     "f08_cat3": (lambda: charts.cat3_subcategories("value"), 1300, 520, 1.45),
     "f09_cat3share": (lambda: charts.cat3_subcategories("share"), 1300, 520, 1.45),
     "f10_diverge": (lambda: charts.divergence_chart(), 1150, 480, 1.35),
@@ -309,7 +309,7 @@ def build_content(report):
         "surplus of the last decade rested on a single price event and it is draining away."
     )
     report.text(
-        "Main category 3, mineral fuels, lubricants and related materials, is the largest mover "
+        "Mineral fuels, lubricants and related materials, is the largest mover "
         "in seven of the nine year transitions in the dataset. It sets the direction of the "
         "decade in both directions of trade. Inside it sits the finding this report is built "
         "around."
@@ -445,7 +445,7 @@ def build_content(report):
             ["Balance", "Export minus import, and the cover ratio", "Analytical"],
             ["Correlation", "Two 10 by 10 correlation matrices on growth", "Statistical"],
             ["ChangePoints", "Largest rise and fall in each year, with a cause", "Analytical"],
-            ["Cat3-SubAnalytics", "Main category 3 against its subcategories", "Analytical"],
+            ["Cat3-SubAnalytics", "Mineral fuels against its subcategories", "Analytical"],
             ["Pet33-Focus", "The focus subcategory, with an insight for each year", "Analytical"],
             ["Pet33-vs-Sub", "Petroleum against coal and gas, with correlations", "Statistical"],
             ["Pet33-Forecast", "Linear trend and CAGR forecasts, and the target path", "Statistical"],
@@ -478,9 +478,9 @@ def build_content(report):
         "Ten categories cannot share one set of colours without becoming unreadable, so the raw "
         "view uses one panel per category and keeps colour for the one distinction that matters "
         "everywhere in this report, which is import against export. The export side is "
-        f"concentrated. Category 2 contributed ${money(main_summary_export['2'][1])}m of export "
-        f"growth and category 3 contributed ${money(main_summary_export['3'][1])}m. The import side "
-        f"is broader, and category 7 alone contributed ${money(main_summary_import['7'][1])}m."
+        f"concentrated. Crude materials contributed ${money(main_summary_export['2'][1])}m of export "
+        f"growth and mineral fuels contributed ${money(main_summary_export['3'][1])}m. The import side "
+        f"is broader, and machinery and transport alone contributed ${money(main_summary_import['7'][1])}m."
     )
     report.figure(
         "f03_index",
@@ -488,20 +488,20 @@ def build_content(report):
         "compares growth rate instead.",
     )
     report.text(
-        f"Indexing reorders the winners. Category 4 is the smallest category in dollars but grew "
-        f"fastest, at a CAGR of {main_summary_export['4'][0]:.1%} on the export side. Category 1 is "
+        f"Indexing reorders the winners. Animal and vegetable oils is the smallest category in dollars but grew "
+        f"fastest, at a CAGR of {main_summary_export['4'][0]:.1%} on the export side. Beverages and tobacco is "
         f"the laggard at {main_summary_export['1'][0]:.1%}, and it is the only category whose export "
         "ends the decade near where it started. A raw chart hides both facts behind the scale of "
-        "categories 2 and 3."
+        "crude materials and mineral fuels."
     )
     report.figure(
         "f04_share",
         "Each main category as a share of its own direction total, in 2016 and again in 2025.",
     )
     report.text(
-        f"The export mix shifted and the import mix did not. Category 2 rose to "
+        f"The export mix shifted and the import mix did not. Crude materials rose to "
         f"{rw.main_share('Export')[1]['2'][-1]:.1%} of all export by 2025. On the import side "
-        f"category 7 moved only from {cat7_share[0]:.1%} to {cat7_share[-1]:.1%}, inside a decade "
+        f"machinery and transport moved only from {cat7_share[0]:.1%} to {cat7_share[-1]:.1%}, inside a decade "
         f"range of {min(cat7_share):.1%} to {max(cat7_share):.1%}. Australia changed what it sells "
         "and did not change what it buys."
     )
@@ -511,7 +511,7 @@ def build_content(report):
         "single most unusual growth year for each category on the right, measured as a z-score.",
     )
     report.text(
-        f"The left panel separates the steady categories from the volatile ones. Category 3 has the "
+        f"The left panel separates the steady categories from the volatile ones. Mineral fuels has the "
         f"highest export volatility at a coefficient of variation of {stats_export['3'][3]:.2f}, "
         f"while its trend fit explains only {stats_export['3'][9]:.0%} of the variance. A category "
         "this volatile cannot be forecast with a straight line, and section 11 returns to that "
@@ -526,11 +526,11 @@ def build_content(report):
         "Blue means the pair moves together and red means it moves apart.",
     )
     report.text(
-        f"The two largest export categories are unrelated. Category 3 against category 2 is "
+        f"The two largest export categories are unrelated. Mineral fuels against crude materials is "
         f"r = {correl_export['3']['2']:.2f}, which is effectively zero across nine growth years. "
-        f"Category 3 instead moves with category 6 at r = {correl_export['3']['6']:.2f} and with "
-        f"category 5 at r = {correl_export['3']['5']:.2f}, because all three follow the same world "
-        f"price cycle. On the import side category 3 against category 7 is "
+        f"Mineral fuels instead moves with manufactured goods at r = {correl_export['3']['6']:.2f} and with "
+        f"chemicals at r = {correl_export['3']['5']:.2f}, because all three follow the same world "
+        f"price cycle. On the import side mineral fuels against machinery and transport is "
         f"r = {correl_import['3']['7']:.2f}. This matters for policy. The two pillars of Australian "
         "export do not hedge each other, because separate cycles drive them and those cycles "
         "happen to overlap."
@@ -575,40 +575,40 @@ def build_content(report):
     )
     report.figure(
         "f10_diverge",
-        "The 2022 divergence. Coal export growth against main category 2, which holds iron ore.",
+        "The 2022 divergence. Coal export growth against crude materials, which holds iron ore.",
     )
 
-    report.heading("7. Main category against subcategory, inside category 3")
+    report.heading("7. Main category against subcategory, inside mineral fuels")
     report.text(
-        "The causes in this section are argued from inside the data, as requirement 4 asks. Main "
-        "category 3 holds exactly three subcategories, which are 32 coal, 33 petroleum and 34 gas."
+        "The causes in this section are argued from inside the data, as requirement 4 asks. "
+        "Mineral fuels holds exactly three subcategories, which are 32 coal, 33 petroleum and 34 gas."
     )
     report.figure(
         "f08_cat3",
-        "Main category 3 and its three subcategories, both directions, in $ Millions.",
+        "Mineral fuels and its three subcategories, both directions, in $ Millions.",
     )
     report.figure(
         "f09_cat3share",
-        "Each subcategory as a share of main category 3, both directions.",
+        "Each subcategory as a share of mineral fuels, both directions.",
     )
     report.text(
         f"The export side and the import side are different categories in practice. On export, "
-        f"petroleum is only {cat3_share_export['33'][-1]:.1%} of category 3 in 2025, behind both "
+        f"petroleum is only {cat3_share_export['33'][-1]:.1%} of mineral fuels in 2025, behind both "
         f"coal and gas. On import, petroleum is {cat3_share_import['33'][-1]:.1%} of the category, "
         f"against {cat3_share_import['32'][-1]:.1%} for coal and {cat3_share_import['34'][-1]:.1%} for gas. "
-        "Any statement about \"category 3 imports\" is a statement about petroleum alone."
+        "Any statement about \"mineral fuels imports\" is a statement about petroleum alone."
     )
     report.text(
         f"Each subcategory tracks its parent closely on growth. Petroleum sits at "
         f"r = {cat3_correl_export['33'][0]:.2f}, coal at r = {cat3_correl_export['32'][0]:.2f} and "
         f"gas at r = {cat3_correl_export['34'][0]:.2f}. The subcategories amplify the main "
         "category. The composition did shift, though. Gas rose from "
-        f"{cat3_share_export['34'][0]:.1%} to {cat3_share_export['34'][-1]:.1%} of category 3 export "
+        f"{cat3_share_export['34'][0]:.1%} to {cat3_share_export['34'][-1]:.1%} of mineral fuels export "
         f"while coal fell from {cat3_share_export['32'][0]:.1%} to "
         f"{cat3_share_export['32'][-1]:.1%}."
     )
     report.text(
-        "One change point can be read from inside the data alone. In 2025 category 3 export fell "
+        "One change point can be read from inside the data alone. In 2025 mineral fuels export fell "
         "18% while petroleum import fell only 6%. If a single demand collapse were driving both "
         "sides they would fall together. They do not, so the export fall is a price effect on what "
         "Australia sells."
@@ -662,7 +662,7 @@ def build_content(report):
         "any order, the storyboard makes one argument in a fixed order across thirteen panels. It "
         "starts with total Australian trade, moves through the ten main categories in their raw, "
         "indexed and statistical forms, works through the change point of each year, descends into "
-        "main category 3, then into subcategory 33, and closes with the forecast and the Claude "
+        "mineral fuels, then into subcategory 33, and closes with the forecast and the Claude "
         "Sonnet 5 comparison. Every panel carries both trade directions and ends with a stated takeaway, so "
         "a reader cannot reach the end without having been told what each chart is for."
     )
@@ -687,7 +687,7 @@ def build_content(report):
         f"r = {pairs['33 against 34']['Export']:.2f} on the export side. On the import side those "
         f"fall to {pairs['33 against 32']['Import']:.2f} and "
         f"{pairs['33 against 34']['Import']:.2f}, because the coal and gas import series are tiny "
-        "and noisy. The export side of category 3 is one coherent energy story and the import side "
+        "and noisy. The export side of mineral fuels is one coherent energy story and the import side "
         "is a petroleum story with two rounding errors attached."
     )
 
@@ -712,7 +712,7 @@ def build_content(report):
         "The outliers fall into three groups and each has a different explanation. The 2020 group "
         "is the manufacturing categories, cut by the COVID demand collapse. The 2022 outlier is "
         "energy, lifted by the price shock after the invasion of Ukraine. The 2025 outlier is "
-        "category 9, and that one is worth care. Category 9 rose $21,245m in 2025 while gold inside "
+        "other commodities, and that one is worth care. Other commodities rose $21,245m in 2025 while gold inside "
         "it rose $23,854m, so gold accounts for more than the whole category movement, offset by a "
         "$3,006m fall in confidential items. Gold rose 44% in price over 2025 against a 67% rise in "
         "Australian gold export value, so price explains most of the rise but not all of it. The "
@@ -947,8 +947,8 @@ def build_content(report):
             "Ten categories, eight safe colours. Cycling hues past eight makes series "
             "indistinguishable, so the ten category charts became small multiples. Colour was then "
             "freed for the one distinction that matters everywhere, import against export.",
-            f"Different magnitudes on one chart. Category 4 export is ${money(cat4_2025)}m against "
-            f"${money(cat2_2025)}m for category 2, a ratio of 1 to {cat2_2025 / cat4_2025:.0f}. A "
+            f"Different magnitudes on one chart. Animal and vegetable oils export is ${money(cat4_2025)}m against "
+            f"${money(cat2_2025)}m for crude materials, a ratio of 1 to {cat2_2025 / cat4_2025:.0f}. A "
             "second y axis was rejected, because two scales on one frame invite false comparison. "
             "Indexing to 2016 and small multiples solved it honestly.",
             "Labels colliding. The first share chart put ten end of line labels on top of each other "
@@ -1006,12 +1006,12 @@ def build_content(report):
             "Treat the two remaining refineries as the variable that matters. Refining capacity is "
             "what decides whether Australia imports crude or finished product, and that mix is the "
             "part of the bill domestic policy can still influence.",
-            "Do not read the energy export surplus as durable cover for the fuel bill. Category 3 "
+            "Do not read the energy export surplus as durable cover for the fuel bill. Mineral fuels "
             f"export has fallen three years in a row and has the highest volatility of any category, "
             f"at a coefficient of variation of {stats_export['3'][3]:.2f}. The surplus that funded "
             "the import bill in 2022 has already shrunk 65%.",
             "Diversify with care, because the two largest export categories do not hedge each "
-            f"other. Categories 2 and 3 correlate at r = {correl_export['3']['2']:.2f}, which looks "
+            f"other. Crude materials and mineral fuels correlate at r = {correl_export['3']['2']:.2f}, which looks "
             "like good diversification, but both are commodity price cycles. Timing kept them "
             "uncorrelated over this decade.",
             "Collect volume alongside value. Every limit in this report comes from the dataset "

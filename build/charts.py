@@ -12,7 +12,7 @@ def money(value):
     return f"{value:,.0f}"
 
 
-HEATMAP_LABELS = {
+MAIN_LABELS = {
     "0": "Food and live animals",
     "1": "Beverages and tobacco",
     "2": "Crude materials",
@@ -148,29 +148,33 @@ def main_statistical():
         cols=2,
         horizontal_spacing=0.12,
         subplot_titles=(
-            "Average size against volatility",
+            "Volatility by category, marker size is the average value",
             "Largest outlier year by growth z-score",
         ),
     )
+    order = None
     for direction in DIRECTIONS:
         names, stats = rw.main_stats(direction)
+        if order is None:
+            order = sorted(stats, key=lambda c: stats[c][3])
+        labels = [MAIN_LABELS.get(str(c), str(c)) for c in order]
+        means = [stats[c][0] for c in order]
+        largest = max(means)
         figure.add_trace(
             go.Scatter(
-                x=[stats[c][3] for c in stats],
-                y=[stats[c][0] for c in stats],
+                x=[stats[c][3] for c in order],
+                y=labels,
                 name=direction,
-                mode="markers+text",
-                text=[c for c in stats],
-                textposition="top center",
-                textfont={"size": 11, "color": theme.LIGHT["secondary"]},
+                mode="markers",
                 marker={
                     "color": theme.DIRECTION_COLOUR[direction],
-                    "size": 11,
+                    "size": [10 + 26 * (value / largest) ** 0.5 for value in means],
                     "line": {"color": theme.LIGHT["surface"], "width": 2},
                 },
+                customdata=means,
                 hovertemplate=(
-                    f"{direction} category %{{text}}<br>"
-                    "mean %{y:,.0f}<br>variation %{x:.2f}<extra></extra>"
+                    f"{direction} %{{y}}<br>"
+                    "mean %{customdata:,.0f}<br>variation %{x:.2f}<extra></extra>"
                 ),
             ),
             row=1,
@@ -179,6 +183,7 @@ def main_statistical():
     for direction in DIRECTIONS:
         names, zscores = rw.main_zscore(direction)
         codes = list(zscores)
+        labels = [MAIN_LABELS.get(str(c), str(c)) for c in codes]
         peaks = []
         peak_years = []
         for code in codes:
@@ -192,7 +197,7 @@ def main_statistical():
             peak_years.append(best[2])
         figure.add_trace(
             go.Bar(
-                x=codes,
+                x=labels,
                 y=peaks,
                 name=direction,
                 legendgroup=direction,
@@ -210,11 +215,15 @@ def main_statistical():
             row=1,
             col=2,
         )
-    apply(figure, "Statistical trend, every main category, import and export", "", "", height=470)
+    apply(figure, "Statistical trend, every main category, import and export", "", "", height=560)
     figure.update_xaxes(**theme.axis("Coefficient of variation"), row=1, col=1)
-    figure.update_yaxes(**theme.axis("Mean value ($ Millions)"), row=1, col=1)
+    figure.update_yaxes(**theme.axis("Main category"), type="category", row=1, col=1)
     figure.update_xaxes(
-        **theme.axis("Main category, labelled with its outlier year"), type="category", row=1, col=2
+        **theme.axis("Main category, labelled with its outlier year"),
+        type="category",
+        tickangle=-40,
+        row=1,
+        col=2,
     )
     figure.update_yaxes(**theme.axis("Z-score of year on year growth"), row=1, col=2)
     figure.update_annotations(font={"size": 13, "color": theme.LIGHT["secondary"]})
@@ -330,7 +339,7 @@ def correlation_heatmap(direction):
     codes, matrix = rw.correlation(direction)
     names, _ = rw.main_values(direction)
     values = [[matrix[r][c] for c in codes] for r in codes]
-    labels = [HEATMAP_LABELS.get(str(c), short_name(names[c], 24)) for c in codes]
+    labels = [MAIN_LABELS.get(str(c), short_name(names[c], 24)) for c in codes]
     figure = go.Figure(
         go.Heatmap(
             z=values,
@@ -370,12 +379,12 @@ def cat3_subcategories(metric):
     if metric == "value":
         reader = rw.cat3_values
         y_title = "$ Millions"
-        title = "Main category 3 and its subcategories, import and export"
+        title = "Mineral fuels and its subcategories, import and export"
         tickformat = None
     else:
         reader = rw.cat3_share
-        y_title = "Share of main category 3"
-        title = "Subcategory share of main category 3, import and export"
+        y_title = "Share of mineral fuels"
+        title = "Subcategory share of mineral fuels, import and export"
         tickformat = ".0%"
     figure = make_subplots(
         rows=1,
@@ -588,7 +597,7 @@ def focus_share_of_main():
             go.Scatter(
                 x=YEARS,
                 y=share["33"],
-                name=f"Petroleum share of category 3, {direction.lower()}",
+                name=f"Petroleum share of mineral fuels, {direction.lower()}",
                 mode="lines+markers",
                 line={"color": theme.DIRECTION_COLOUR[direction], "width": 2},
                 marker={"size": 8},
@@ -597,9 +606,9 @@ def focus_share_of_main():
         )
     apply(
         figure,
-        "Petroleum as a share of main category 3",
+        "Petroleum as a share of mineral fuels",
         "Year",
-        "Share of main category 3",
+        "Share of mineral fuels",
         height=440,
     )
     figure.update_yaxes(tickformat=".0%")
@@ -764,7 +773,7 @@ def divergence_chart():
         go.Bar(
             x=YEARS[1:],
             y=growth_e["2"],
-            name="Main category 2 export growth, holds iron ore",
+            name="Crude materials export growth, holds iron ore",
             marker={"color": theme.CONTEXT},
             hovertemplate="Category 2 %{y:.0%}<extra></extra>",
         )
@@ -781,7 +790,7 @@ def divergence_chart():
         barmode="group",
         annotations=[
             theme.annotation(
-                "2022: coal rises 124%<br>while category 2 falls",
+                "2022: coal rises 124%<br>while crude materials falls",
                 2022,
                 max(coal["32"]),
                 ax=20,
